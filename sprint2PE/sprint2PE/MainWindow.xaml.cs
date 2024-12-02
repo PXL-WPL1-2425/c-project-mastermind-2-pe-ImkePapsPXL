@@ -227,7 +227,7 @@ namespace WpfApp
                 if (attempts >= 10)
                 {
                     timer.Stop();
-                    MessageBoxResult answer = MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
                     //if (answer == MessageBoxResult.Yes)
                     //{
                     //    StartGame();
