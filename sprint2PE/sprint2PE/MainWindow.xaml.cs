@@ -135,7 +135,7 @@ namespace WpfApp
                 if (score > highScore)
                 {
                     highScore = score;
-                    //highScores = Array.(highScore);
+                    //highScores = Array.(highScore); nog bezig met in array te zetten om te lezen 
                 }
             }
             if (remainingAttempts <= 0)
