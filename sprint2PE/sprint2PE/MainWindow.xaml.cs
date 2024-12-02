@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using static System.Formats.Asn1.AsnWriter;
 using WpfLabel = System.Windows.Controls.Label;
 
@@ -38,8 +39,9 @@ namespace WpfApp
 
         private int score = 100;
         private int attempts = 1;
-        private int remainingAttempts = 10;
-
+        private int remainingAttempts = 0;
+        private int highScore = 0;
+        private int[] highScores = [0, 15];
 
         DispatcherTimer timer = new DispatcherTimer();
         TimeSpan elapsedTime;
@@ -130,6 +132,11 @@ namespace WpfApp
                 //    Close();
                 //}
                 //return;
+                if (score > highScore)
+                {
+                    highScore = score;
+                    //highScores = Array.(highScore);
+                }
             }
             if (remainingAttempts <= 0)
             {
@@ -224,7 +231,7 @@ namespace WpfApp
                 attempts++;
                 this.Title = $"Poging {attempts}";
                 StartCountDown();
-                if (attempts >= 10)
+                if (attempts >= remainingAttempts) 
                 {
                     timer.Stop();
                     MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -266,12 +273,12 @@ namespace WpfApp
         private void StartGame()
         {
             string name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
-            while(!string.IsNullOrEmpty(name))
+            while (!string.IsNullOrEmpty(name) || name == " ")
             {
                 MessageBox.Show("Geef uw naam", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
                 name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
             }
-            
+           
             score = 100;
             attempts = 0;
             remainingAttempts = 10;
@@ -305,7 +312,7 @@ namespace WpfApp
 
         private void highScoreMenu_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("", "MasterMind highscores");
+            MessageBox.Show($"{Name}- {attempts}/{remainingAttempts} - {highScores}", "MasterMind highscores");
         }
 
         private void closeGameMenu_Click(object sender, RoutedEventArgs e)
@@ -315,7 +322,24 @@ namespace WpfApp
 
         private void amountOfAttemptsMenu_Click(object sender, RoutedEventArgs e)
         {
+            string answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
             
+            //was nog bezig met om te zetten naar int en zodanig te lezen
+            
+            //remainingAttempts = answer;
+            //while (!string.IsNullOrEmpty(answer))
+            //{
+            //    MessageBox.Show("Hoeveel pogingen wilt u?", "Foutieve invoer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            //    answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
+            //}
+            //if (answer >= 3 || answer <= 20)
+            //{
+            //    MessageBox.Show("Hoeveel pogingen wilt u?", "Foutieve invoer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            //    answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
+            //}
+
         }
-    }
+    } 
+
+        
 }
