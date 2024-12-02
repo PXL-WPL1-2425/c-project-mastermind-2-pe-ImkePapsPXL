@@ -266,7 +266,7 @@ namespace WpfApp
         private void StartGame()
         {
             string name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
-            while(!string.IsNullOrEmpty(name) && name == " " )
+            while(!string.IsNullOrEmpty(name) || name == " " )
             {
                 MessageBox.Show("Geef uw naam", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
                 name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
