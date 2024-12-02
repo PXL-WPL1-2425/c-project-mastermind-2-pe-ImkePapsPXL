@@ -120,30 +120,30 @@ namespace WpfApp
             }
             else if (match)
             {
-                MessageBoxResult answer = MessageBox.Show($"Code is gekraakt in {attempts.ToString()} pogingen. Wil je nog eens?", $"WINNER", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                if (answer == MessageBoxResult.Yes)
-                {
-                    StartGame();
-                }
-                else
-                {
-                    Close();
-                }
-                return;
+                MessageBoxResult answer = MessageBox.Show($"Code is gekraakt in {attempts.ToString()} pogingen.", $"WINNER", MessageBoxButton.OK, MessageBoxImage.Information);
+                //if (answer == MessageBoxResult.Yes)
+                //{
+                //    StartGame();
+                //}
+                //else
+                //{
+                //    Close();
+                //}
+                //return;
             }
             if (remainingAttempts <= 0)
             {
                 timer.Stop();
-                MessageBoxResult answer = MessageBox.Show($"Geen pogingen meer. De code was {colorCode}. Wil je nog eens?", $"FAILED", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                if (answer == MessageBoxResult.Yes)
-                {
-                    StartGame();
-                }
-                else
-                {
-                    Close();
-                }
-                return;
+                MessageBoxResult answer = MessageBox.Show($"Geen pogingen meer. De code was {colorCode}.", $"FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
+                //if (answer == MessageBoxResult.Yes)
+                //{
+                //    StartGame();
+                //}
+                //else
+                //{
+                //    Close();
+                //}
+                //return;
             }
         }
         private void AddAttemptToList(int correctPositions, int correctColors)
@@ -227,16 +227,16 @@ namespace WpfApp
                 if (attempts >= 10)
                 {
                     timer.Stop();
-                    MessageBoxResult answer = MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}. Nog eens proberen?", "FAILED", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                    if (answer == MessageBoxResult.Yes)
-                    {
-                        StartGame();
-                    }
-                    else
-                    {
-                        Close();
-                    }
-                    return;
+                    MessageBoxResult answer = MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //if (answer == MessageBoxResult.Yes)
+                    //{
+                    //    StartGame();
+                    //}
+                    //else
+                    //{
+                    //    Close();
+                    //}
+                    //return;
                 }
             }
         }
@@ -266,7 +266,7 @@ namespace WpfApp
         private void StartGame()
         {
             string name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
-            while(!string.IsNullOrEmpty(name) || name == " " )
+            while(!string.IsNullOrEmpty(name))
             {
                 MessageBox.Show("Geef uw naam", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
                 name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
