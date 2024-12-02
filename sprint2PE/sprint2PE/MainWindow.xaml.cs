@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -50,6 +51,7 @@ namespace WpfApp
             labels = new WpfLabel[] { label1, label2, label3, label4 };
             GenerateTargetColors();
             StartCountDown();
+            StartGame();
         }
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -121,7 +123,7 @@ namespace WpfApp
                 MessageBoxResult answer = MessageBox.Show($"Code is gekraakt in {attempts.ToString()} pogingen. Wil je nog eens?", $"WINNER", MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (answer == MessageBoxResult.Yes)
                 {
-                    ResetGame();
+                    StartGame();
                 }
                 else
                 {
@@ -135,7 +137,7 @@ namespace WpfApp
                 MessageBoxResult answer = MessageBox.Show($"Geen pogingen meer. De code was {colorCode}. Wil je nog eens?", $"FAILED", MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (answer == MessageBoxResult.Yes)
                 {
-                    ResetGame();
+                    StartGame();
                 }
                 else
                 {
@@ -228,7 +230,7 @@ namespace WpfApp
                     MessageBoxResult answer = MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}. Nog eens proberen?", "FAILED", MessageBoxButton.YesNo, MessageBoxImage.Information);
                     if (answer == MessageBoxResult.Yes)
                     {
-                        ResetGame();
+                        StartGame();
                     }
                     else
                     {
@@ -261,8 +263,15 @@ namespace WpfApp
             debugLabel.Content = $" {string.Join(", ", targetColors.Select(color => colorName[color]))}";
 #endif
         }
-        private void ResetGame()
+        private void StartGame()
         {
+            string name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
+            while(!string.IsNullOrEmpty(name) && name == " " )
+            {
+                MessageBox.Show("Geef uw naam", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
+                name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
+            }
+            
             score = 100;
             attempts = 0;
             remainingAttempts = 10;
@@ -291,7 +300,7 @@ namespace WpfApp
 
         private void newGameMenu_Click(object sender, RoutedEventArgs e)
         {
-            ResetGame();
+            StartGame();
         }
 
         private void highScoreMenu_Click(object sender, RoutedEventArgs e)
