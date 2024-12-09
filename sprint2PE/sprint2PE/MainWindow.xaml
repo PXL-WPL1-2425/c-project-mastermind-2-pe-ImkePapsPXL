@@ -1,7 +1,7 @@
 ﻿<Window x:Class="WpfApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Mastermind" Height="750" Width="655" Background="LightGray" KeyDown="MainWindow_KeyDown" Loaded="MainWindow_Loaded" Closing="MainWindow_Closing">
+        Title="Mastermind" Height="750" Width="655" Background="LightGray" KeyDown="MainWindow_KeyDown" Closing="MainWindow_Closing">
     <Grid Margin="0,0,0,-141">
         <Menu>
             <MenuItem Name="fileMenu" Header="Bestand">

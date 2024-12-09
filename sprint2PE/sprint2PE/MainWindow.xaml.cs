@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml.Linq;
 using static System.Formats.Asn1.AsnWriter;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using WpfLabel = System.Windows.Controls.Label;
 
 
@@ -28,20 +29,23 @@ namespace WpfApp
         private Brush[] targetColors = new Brush[4];
         private Brush[] predefinedColors = new Brush[] { Brushes.Red, Brushes.Green, Brushes.Blue, Brushes.Yellow, Brushes.Orange, Brushes.White };
         private Dictionary<Brush, string> colorName = new Dictionary<Brush, string>
-        {
-            { Brushes.Red, "Red" },
-            { Brushes.Green, "Green" },
-            { Brushes.Blue, "Blue" },
-            { Brushes.Yellow, "Yellow" },
-            { Brushes.Orange, "Orange" },
-            { Brushes.White, "White" }
-        };
+    {
+        { Brushes.Red, "Red" },
+        { Brushes.Green, "Green" },
+        { Brushes.Blue, "Blue" },
+        { Brushes.Yellow, "Yellow" },
+        { Brushes.Orange, "Orange" },
+        { Brushes.White, "White" }
+    };
 
         private int score = 100;
-        private int attempts = 1;
-        private int remainingAttempts = 0;
-        private int highScore = 0;
-        private int[] highScores = [0, 15];
+        private int attempts = 0;
+        private int remainingAttempts = 10;       
+        private List<(string playerName, int attempts, int score)> highScores = new List<(string playerName, int attempts, int score)>();
+        private string playerName;
+        private int amountOfPlayers = 0;
+        private int currentPlayerIndex = 0;
+        private List<string> playerNames = new List<string>();
 
         DispatcherTimer timer = new DispatcherTimer();
         TimeSpan elapsedTime;
@@ -52,26 +56,20 @@ namespace WpfApp
             InitializeComponent();
             labels = new WpfLabel[] { label1, label2, label3, label4 };
             GenerateTargetColors();
-            StartCountDown();
             StartGame();
-        }
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
             StartCountDown();
-            this.Title = $"Poging {attempts.ToString()}";
+            this.Title = $"{playerName}";
         }
         private void GenerateTargetColors()
         {
-            //de kleurencode creeren
             Random rand = new Random();
             for (int i = 0; i < targetColors.Length; i++)
             {
-                targetColors[i] = predefinedColors[rand.Next(0, 4)];
+                targetColors[i] = predefinedColors[rand.Next(predefinedColors.Length)];
             }
         }
         private void Label_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            //labelkleur veranderen
             WpfLabel clickedLabel = (WpfLabel)sender;
             int currentIndex = Array.IndexOf(predefinedColors, clickedLabel.Background);
             int nextIndex = (currentIndex + 1) % predefinedColors.Length;
@@ -82,7 +80,7 @@ namespace WpfApp
             CheckCode();
             StartCountDown();
             attempts++;
-            this.Title = $"Poging {attempts.ToString()}";
+            this.Title = $"{playerName}";
         }
         private void CheckCode()
         {
@@ -103,59 +101,61 @@ namespace WpfApp
                 else if (targetColors.Contains(labels[i].Background))
                 {
                     correctColors++;
+                    totalPenalty += 1;
                     match = false;
-                    totalPenalty++;
                 }
                 else
                 {
+                    totalPenalty += 2;
                     match = false;
-                    totalPenalty = +2;
                 }
             }
             score -= totalPenalty;
+            if (score < 0) score = 0;
             AddAttemptToList(correctPositions, correctColors);
 
             if (!match)
             {
                 remainingAttempts--;
                 scoreLabel.Content = $"Score: {score}";
+                UpdateHighScores(score);
             }
-            else if (match)
+            else
             {
-                MessageBoxResult answer = MessageBox.Show($"Code is gekraakt in {attempts.ToString()} pogingen.", $"WINNER", MessageBoxButton.OK, MessageBoxImage.Information);
-                //if (answer == MessageBoxResult.Yes)
-                //{
-                //    StartGame();
-                //}
-                //else
-                //{
-                //    Close();
-                //}
-                //return;
-                if (score > highScore)
-                {
-                    highScore = score;
-                    //highScores = Array.(highScore); nog bezig met in array te zetten om te lezen 
+                MessageBox.Show($"Code is gekraakt in {attempts} pogingen.", $"WINNER", MessageBoxButton.OK, MessageBoxImage.Information);
+                timer.Stop();              
+                
+                    if (playerNames.Count > 0)
+                    {
+                    ResetGame();
+                    amountOfPlayers--;
+                    currentPlayerIndex = (currentPlayerIndex + 1) % playerNames.Count; 
+                    }
+
                 }
-            }
-            if (remainingAttempts <= 0)
+
+            if (remainingAttempts <= 0 || score <= 0)
             {
                 timer.Stop();
-                MessageBoxResult answer = MessageBox.Show($"Geen pogingen meer. De code was {colorCode}.", $"FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
-                //if (answer == MessageBoxResult.Yes)
-                //{
-                //    StartGame();
-                //}
-                //else
-                //{
-                //    Close();
-                //}
-                //return;
+                MessageBox.Show($"Geen pogingen meer. De code was {colorCode}.", $"FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
+              
+                if (playerNames.Count > 0)
+                {
+                    ResetGame();
+                    amountOfPlayers--;
+                    currentPlayerIndex = (currentPlayerIndex + 1) % playerNames.Count; 
+                }
             }
+            scoreLabel.Content = $"Score: {score}";
+        }
+        private void UpdateHighScores(int newScore)
+        {
+            highScores.Add((playerName, attempts, score));
+            highScores = highScores.OrderByDescending(x => x.score).Take(15).ToList();
+            
         }
         private void AddAttemptToList(int correctPositions, int correctColors)
         {
-            //controle gedaan in gekleurde vakjes achter historiek
             StackPanel attemptPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -205,45 +205,31 @@ namespace WpfApp
         }
         private void StartCountDown()
         {
-            ///<para>Hier definieer ik dat de counter op 0 moet beginnen
-            ///het gaat om de seconden. (TimeSpan)</para>
             startTime = DateTime.Now;
             timer.Tick += Timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 1);
             timer.Start();
-
         }
         private void StopCountDown()
         {
-            ///<para> De timer stopt na 10 seconde als er niet op check code is geklikt.
-            ///</para>
             timer.Stop();
         }
         private void Timer_Tick(object sender, EventArgs e)
         {
             elapsedTime = DateTime.Now - startTime;
             timerLabel.Content = elapsedTime.ToString("ss");
-            string colorCode = string.Join(", ", targetColors.Select(color => colorName[color]));
 
             if (elapsedTime.TotalSeconds > 10)
             {
                 StopCountDown();
                 attempts++;
-                this.Title = $"Poging {attempts}";
+                this.Title = $"{playerName}";
                 StartCountDown();
-                if (attempts >= remainingAttempts) 
+                if (attempts >= remainingAttempts)
                 {
                     timer.Stop();
-                    MessageBox.Show($" Geen pogingen meer. De code was  {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //if (answer == MessageBoxResult.Yes)
-                    //{
-                    //    StartGame();
-                    //}
-                    //else
-                    //{
-                    //    Close();
-                    //}
-                    //return;
+                    string colorCode = string.Join(", ", targetColors.Select(color => colorName[color]));
+                    MessageBox.Show($"Geen pogingen meer. De code was {colorCode}.", "FAILED", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
@@ -266,29 +252,52 @@ namespace WpfApp
         }
         public void ShowGeneratedCode()
         {
-#if DEBUG
+        #if DEBUG
             debugLabel.Content = $" {string.Join(", ", targetColors.Select(color => colorName[color]))}";
-#endif
+        #endif
         }
-        private void StartGame()
+        public void StartGame()
         {
-            string name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
-            while (!string.IsNullOrEmpty(name) || name == " ")
+            List<string> playerNames = new List<string>();
+
+            while (true)
             {
-                MessageBox.Show("Geef uw naam", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
-                name = Interaction.InputBox("Wat is uw naam?", "Welkom", " ");
+                string name = Interaction.InputBox("Wat is uw naam?", "Welkom", "").Trim();
+
+                while (string.IsNullOrWhiteSpace(name))
+                {
+                    MessageBox.Show("De naam mag niet leeg zijn. Probeer het opnieuw.", "Foutieve invoer", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    name = Interaction.InputBox("Wat is uw naam?", "Welkom", "").Trim();
+                }
+
+                playerNames.Add(name);
+                playerName = name;
+
+                MessageBoxResult answer = MessageBox.Show("Speelt er nog een speler mee?", "Speler toevoegen", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (answer == MessageBoxResult.No)
+                {
+                    break;
+                }
+                else
+                {
+                    amountOfPlayers++;
+                    currentPlayerIndex = playerNames.Count - 1;
+                }
+                StartCountDown();
             }
-           
+        }
+        private void ResetGame()
+        {
             score = 100;
             attempts = 0;
             remainingAttempts = 10;
 
             attemptsPanel.Children.Clear();
+            scoreLabel.Content = 100;            
 
             GenerateTargetColors();
 
-            //scoreLabel.Content = "Score: 100";
-            this.Title = $"Poging {attempts}";
+            this.Title = $"{playerName}";
 
             label1.Background = Brushes.White;
             label2.Background = Brushes.White;
@@ -304,42 +313,33 @@ namespace WpfApp
                 e.Cancel = true;
             }
         }
-
         private void newGameMenu_Click(object sender, RoutedEventArgs e)
         {
+            ResetGame();
             StartGame();
         }
-
         private void highScoreMenu_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"{Name}- {attempts}/{remainingAttempts} - {highScores}", "MasterMind highscores");
-        }
+            string highscoreEntry = string.Join("\n", highScores.Select((entry, index) => $"{entry.playerName} - {entry.attempts} pogingen - {entry.score}/100"));
 
+            MessageBox.Show(string.IsNullOrEmpty(highscoreEntry) ? "Nog geen highscores!" : highscoreEntry,
+            "Mastermind highscores", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         private void closeGameMenu_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
-
         private void amountOfAttemptsMenu_Click(object sender, RoutedEventArgs e)
         {
             string answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
-            
-            //was nog bezig met om te zetten naar int en zodanig te lezen
-            
-            //remainingAttempts = answer;
-            //while (!string.IsNullOrEmpty(answer))
-            //{
-            //    MessageBox.Show("Hoeveel pogingen wilt u?", "Foutieve invoer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-            //    answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
-            //}
-            //if (answer >= 3 || answer <= 20)
-            //{
-            //    MessageBox.Show("Hoeveel pogingen wilt u?", "Foutieve invoer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-            //    answer = Interaction.InputBox("Hoeveel pogingen wilt u?", "Pogingen kiezen", " ", 20);
-            //}
+            bool result = Int32.TryParse(answer, out remainingAttempts);
 
+            if (!result || remainingAttempts < 3 || remainingAttempts > 20)
+            {
+                MessageBox.Show("Voer een geldig aantal pogingen in tussen 3 en 20.", "Foutieve invoer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            }
         }
-    } 
+    }
 
-        
+
 }
